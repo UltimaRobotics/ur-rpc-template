@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Add the deps directory as a subdirectory to build mqtt-client-static first
 add_subdirectory(deps/mqtt-client)
-# add_subdirectory(deps/cJSON)
+add_subdirectory(deps/cJSON)
 
 # Library sources
 set(LIB_SOURCES

@@ -78,8 +78,8 @@ void free_device_state(DeviceState* state) {
 }
 
 // Parse base configuration from JSON file
-Config parse_base_config(const char* filename) {
-    Config config = {0};
+Config_mqtt parse_base_config(const char* filename) {
+    Config_mqtt config = {0};
     FILE* file = fopen(filename, "r");
     if (!file) {
         fprintf(stderr, "Failed to open config file: %s\n", filename);
@@ -193,7 +193,7 @@ CustomLoader parse_custom_topics(const char* filename) {
 }
 
 // Free base configuration memory
-void free_base_config(Config* config) {
+void free_base_config(Config_mqtt* config) {
     if (config->process_id) free(config->process_id);
     if (config->broker_url) free(config->broker_url);
     if (config->heartbeat_topic) free(config->heartbeat_topic);
@@ -297,9 +297,6 @@ bool query_ip_availability(MqttThreadContext* context, const char* ip) {
 
 // Helper function to publish to additional topics
 void publish_to_custom_topic(const char* topic, const char* message) {
-    pthread_mutex_lock(&context->mutex);
-    
-    // Verify the topic is in our publish list
     bool valid_topic = false;
     for (int i = 0; i < context->config_additional.json_added_pubs.topics_num; i++) {
         if (strcmp(topic, context->config_additional.json_added_pubs.topics[i]) == 0) {
@@ -307,7 +304,6 @@ void publish_to_custom_topic(const char* topic, const char* message) {
             break;
         }
     }
-    
     if (valid_topic) {
         int rc = mosquitto_publish(context->mosq, NULL, topic, strlen(message), message, 0, false);
         if (rc != MOSQ_ERR_SUCCESS) {
@@ -316,100 +312,41 @@ void publish_to_custom_topic(const char* topic, const char* message) {
     } else {
         fprintf(stderr, "Attempted to publish to unauthorized topic: %s\n", topic);
     }
-    
-    pthread_mutex_unlock(&context->mutex);
 }
-
-#ifdef _DEBUG_MODE
-void publish_to_custom_topic_multi_int(MqttThreadContext* context, const char* topic, const char* message) {
-    pthread_mutex_lock(&context->mutex);
-    
-    // Verify the topic is in our publish list
-    bool valid_topic = false;
-    for (int i = 0; i < context->config_additional.json_added_pubs.topics_num; i++) {
-        if (strcmp(topic, context->config_additional.json_added_pubs.topics[i]) == 0) {
-            valid_topic = true;
-            break;
-        }
-    }
-    
-    if (valid_topic) {
-        int rc = mosquitto_publish(context->mosq, NULL, topic, strlen(message), message, 0, false);
-        if (rc != MOSQ_ERR_SUCCESS) {
-            fprintf(stderr, "Failed to publish to custom topic %s: %s\n", topic, mosquitto_strerror(rc));
-        }
-    } else {
-        fprintf(stderr, "Attempted to publish to unauthorized topic: %s\n", topic);
-    }
-    
-    pthread_mutex_unlock(&context->mutex);
-}
-#endif
 
 // MQTT thread function (detached)
 void* mqtt_thread_func(void* arg) {
+
     MqttThreadContext* context = (MqttThreadContext*)arg;
     int rc;
-
-    // Initialize Mosquitto
     mosquitto_lib_init();
     context->mosq = mosquitto_new(NULL, true, context);
     if (!context->mosq) {
         fprintf(stderr, "[MQTT] Failed to create Mosquitto instance\n");
-        atomic_store(&context->mqtt_monitor.healthy, false);
         return NULL;
     }
 
-    // Set up callbacks and connect
     mosquitto_message_callback_set(context->mosq, on_message);
-    rc = mosquitto_connect(context->mosq, 
-                         context->config_base.broker_url, 
-                         context->config_base.broker_port, 
-                         60);
+    mosquitto_connect_callback_set(context->mosq, on_connect);
+    rc = mosquitto_connect(context->mosq, context->config_base.broker_url, context->config_base.broker_port, 60);
     if (rc != MOSQ_ERR_SUCCESS) {
         fprintf(stderr, "[MQTT] Failed to connect to broker %s:%d: %s\n",context->config_base.broker_url,context->config_base.broker_port, mosquitto_strerror(rc));
         printf("files %s %s \n",context->config_paths.base_config_path,context->config_paths.custom_config_path);
         mosquitto_destroy(context->mosq);
         mosquitto_lib_cleanup();
-        atomic_store(&context->mqtt_monitor.healthy, false);
         return NULL;
     }
 
-    // Subscribe to topics
-    mosquitto_subscribe(context->mosq, NULL, context->config_base.heartbeat_topic, 0);
-    mosquitto_subscribe(context->mosq, NULL, context->config_base.module_update_topic, 0);
-    #ifdef _DEBUG_MODE
-        printf("context->config_base.heartbeat_topic :%s\n",context->config_base.heartbeat_topic);
-        printf("context->config_base.module_update_topic:%s\n",context->config_base.module_update_topic);
-
-    #endif
-    
-    pthread_mutex_lock(&context->mutex);
-    for (int i = 0; i < context->config_additional.json_added_subs.topics_num; i++) {
-        #ifdef _DEBUG_MODE
-            printf("context->config_additional.json_added_subs.topics[i]:%s\n",context->config_additional.json_added_subs.topics[i]);
-        #endif
-        mosquitto_subscribe(context->mosq, NULL, context->config_additional.json_added_subs.topics[i], 0);
+    int ret = mosquitto_loop_start(context->mosq);
+    if (ret != MOSQ_ERR_SUCCESS) {
+        fprintf(stderr, "Unable to start loop: %s\n", mosquitto_strerror(ret));
+        mosquitto_destroy(context->mosq);
+        mosquitto_lib_cleanup();
+        return 1;
     }
-    pthread_mutex_unlock(&context->mutex);
-
-    // Mark as healthy and running
-    atomic_store(&context->mqtt_monitor.healthy, true);
-    atomic_store(&context->mqtt_monitor.running, true);
-
-    // Main MQTT loop
-    while (atomic_load(&context->mqtt_monitor.running)) {
-        rc = mosquitto_loop(context->mosq, 100, 1);
-        if (rc != MOSQ_ERR_SUCCESS && rc != MOSQ_ERR_NO_CONN) {
-            fprintf(stderr, "[MQTT] Connection error: %s\n", mosquitto_strerror(rc));
-            sleep(1);
-            mosquitto_reconnect(context->mosq);
-        }
-        context->mqtt_monitor.last_activity = time(NULL);
-        usleep(100000);
+    while(1){
+        usleep(100000);  // Sleep for 100 ms
     }
-
-    // Cleanup
     mosquitto_disconnect(context->mosq);
     mosquitto_destroy(context->mosq);
     mosquitto_lib_cleanup();
@@ -417,110 +354,6 @@ void* mqtt_thread_func(void* arg) {
     return NULL;
 }
 
-// Health monitoring thread function (detached)
-void* health_monitor_func(void* arg) {
-    MqttThreadContext* context = (MqttThreadContext*)arg;
-    const time_t timeout = 10; // 10 second timeout
-    const time_t thread_waiting_timeout = 1000000; // 10 second timeout
-    atomic_store(&context->health_monitor.running, true);
-    usleep(thread_waiting_timeout);
-    
-    while (atomic_load(&context->health_monitor.running)) {
-        // Check MQTT thread health
-        time_t now = time(NULL);
-        time_t last_active = context->mqtt_monitor.last_activity;
-        
-        if (!atomic_load(&context->mqtt_monitor.healthy) || 
-            (now - last_active) > timeout) {
-            
-            fprintf(stderr, "[MONITOR] MQTT thread unhealthy or unresponsive\n");
-            
-            // Attempt to restart MQTT thread
-            atomic_store(&context->mqtt_monitor.running, false);
-            pthread_join(context->mqtt_monitor.thread_id, NULL);
-            
-            // Reinitialize
-            atomic_store(&context->mqtt_monitor.healthy, true);
-            context->mqtt_monitor.last_activity = time(NULL);
-            
-            if (pthread_create(&context->mqtt_monitor.thread_id, NULL, 
-                             mqtt_thread_func, context) != 0) {
-                fprintf(stderr, "[MONITOR] Failed to restart MQTT thread\n");
-                break;
-            }
-        }
-        
-        sleep(5); // Check every 5 seconds
-    }
-    
-    atomic_store(&context->health_monitor.running, false);
-    return NULL;
-}
-
-// Initialize and start MQTT system
-WEAK void mqtt_thread_runner(const char* base_config_file, const char* custom_topics_file) {
-    MqttThreadContext* context = malloc(sizeof(MqttThreadContext));
-    memset(context, 0, sizeof(MqttThreadContext));
-    pthread_mutex_init(&context->mutex, NULL);
-
-    // Store config paths
-    context->config_paths.base_config_path = strdup(base_config_file);
-    context->config_paths.custom_config_path = strdup(custom_topics_file);
-
-    // Load configurations
-    context->config_base = parse_base_config(base_config_file);
-    context->config_additional = parse_custom_topics(custom_topics_file);
-
-    // Initialize monitors
-    context->mqtt_monitor.last_activity = time(NULL);
-    atomic_init(&context->mqtt_monitor.running, false);
-    atomic_init(&context->mqtt_monitor.healthy, false);
-    atomic_init(&context->health_monitor.running, false);
-
-    // Set up thread attributes for detached threads
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-    // Start MQTT thread
-    if (pthread_create(&context->mqtt_monitor.thread_id, &attr, 
-                      mqtt_thread_func, context) != 0) {
-        fprintf(stderr, "Failed to create MQTT thread\n");
-        goto cleanup;
-    }
-
-    // Start health monitor thread
-    if (pthread_create(&context->health_monitor.thread_id, &attr, 
-                      health_monitor_func, context) != 0) {
-        fprintf(stderr, "Failed to create health monitor thread\n");
-        atomic_store(&context->mqtt_monitor.running, false);
-        goto cleanup;
-    }
-
-    pthread_attr_destroy(&attr);
-
-    // Main thread can now do other work
-    while (1) {
-        sleep(1);
-        // Add main application logic here
-    }
-
-    cleanup:
-    // Cleanup procedure
-    atomic_store(&context->mqtt_monitor.running, false);
-    atomic_store(&context->health_monitor.running, false);
-    
-    // Give threads time to exit
-    sleep(1);
-    
-    // Free resources
-    free_base_config(&context->config_base);
-    free_custom_topics(&context->config_additional);
-    free(context->config_paths.base_config_path);
-    free(context->config_paths.custom_config_path);
-    pthread_mutex_destroy(&context->mutex);
-    free(context);
-}
 
 void copy_mqtt_thread_context(MqttThreadContext* dest, const MqttThreadContext* src) {
     if (!dest || !src) return;

@@ -32,7 +32,7 @@ typedef struct {
     char* module_update_topic; // Topic for internal mqtt client new attributes  
     int heartbeat_interval;    // Heartbeat interval in milliseconds
     int heartbeat_timeout;     // Heartbeat timeout in milliseconds
-} Config;
+} Config_mqtt;
 
 // Structure to hold additional topics
 typedef struct {
@@ -61,7 +61,7 @@ typedef struct {
 // MQTT thread context structure
 typedef struct {
     struct mosquitto* mosq;
-    Config config_base;
+    Config_mqtt config_base;
     CustomLoader config_additional;
     config_files config_paths;
     pthread_mutex_t mutex;
@@ -71,18 +71,21 @@ typedef struct {
 
 extern MqttThreadContext* context; 
 
+
+
 // Function prototypes
-Config parse_base_config(const char* filename);
+Config_mqtt parse_base_config(const char* filename);
 CustomLoader parse_custom_topics(const char* filename);
-void free_base_config(Config* config);
+void free_base_config(Config_mqtt* config);
 void free_custom_topics(CustomLoader* custom);
+
 void* mqtt_thread_func(void* arg);
 void on_message(struct mosquitto* mosq, void* obj, const struct mosquitto_message* msg);
-bool query_process_status(MqttThreadContext* context, const char* process_id) ;
-bool query_ip_availability(MqttThreadContext* context, const char* ip);
-void publish_to_custom_topic(const char* topic, const char* message);
-// template for multi clients void publish_to_custom_topic(MqttThreadContext* context, const char* topic, const char* message);
+void on_connect(struct mosquitto* mosq, void* obj, int rc);
 
+void* mqtt_reconnect_func(void *arg);
+
+void publish_to_custom_topic(const char* topic, const char* message);
 
 #ifdef __GNUC__
 #define WEAK __attribute__((weak))
