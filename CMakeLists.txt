@@ -20,7 +20,7 @@ add_subdirectory(deps/cJSON)
 add_subdirectory(deps/mqtt-client)
 
 # Add local nlohmann/json directory
-add_subdirectory(deps/nlohmann)
+add_subdirectory(deps/ur-logger-api)
 
 # Compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pthread")
@@ -47,7 +47,7 @@ target_include_directories(ur-rpc-template
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/cJSON
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/mqtt-client/src
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/nlohmann/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../ur-logger-api
+        ${CMAKE_CURRENT_SOURCE_DIR}/deps/ur-logger-api
 )
 
 # Link libraries
