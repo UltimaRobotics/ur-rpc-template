@@ -1,0 +1,22 @@
+1753222947: mosquitto version 2.0.18 starting
+1753222947: Config loaded from mosquitto_1885.conf.
+1753222947: Opening ipv4 listen socket on port 1885.
+1753222947: Opening ipv6 listen socket on port 1885.
+1753222947: mosquitto version 2.0.18 running
+1753222949: New connection from 127.0.0.1:48875 on port 1885.
+1753222949: New client connected from 127.0.0.1:48875 as relay_test_subscriber (p2, c1, k60).
+1753222949: No will message specified.
+1753222949: Sending CONNACK to relay_test_subscriber (0, 0)
+1753222949: Received SUBSCRIBE from relay_test_subscriber
+1753222949: 	forwarded/sensors/+ (QoS 0)
+1753222949: relay_test_subscriber 0 forwarded/sensors/+
+1753222949: Sending SUBACK to relay_test_subscriber
+1753222949: Received SUBSCRIBE from relay_test_subscriber
+1753222949: 	forwarded/system/+ (QoS 0)
+1753222949: relay_test_subscriber 0 forwarded/system/+
+1753222949: Sending SUBACK to relay_test_subscriber
+1753222949: Received SUBSCRIBE from relay_test_subscriber
+1753222949: 	relayed/commands/+ (QoS 0)
+1753222949: relay_test_subscriber 0 relayed/commands/+
+1753222949: Sending SUBACK to relay_test_subscriber
+1753222961: mosquitto version 2.0.18 terminating

@@ -1,0 +1,86 @@
+{
+  "client_id": "conditional_relay_client",
+  "broker_host": "localhost",
+  "broker_port": 1883,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "qos": 1,
+  "use_tls": false,
+  "ca_file": null,
+  "cert_file": null,
+  "key_file": null,
+  "tls_insecure": false,
+  "tls_version": null,
+  "clean_session": true,
+  "auto_reconnect": true,
+  "max_reconnect_attempts": 10,
+  "reconnect_delay_seconds": 5,
+  "heartbeat": {
+    "enabled": true,
+    "topic": "conditional_relay/smart/heartbeat",
+    "interval_seconds": 30,
+    "payload": "{\"status\":\"alive\",\"relay_type\":\"conditional\",\"logic\":\"enabled\"}"
+  },
+  "relay": {
+    "enabled": true,
+    "conditional_relay": true,
+    "relay_prefix": "conditional",
+    "brokers": [
+      {
+        "host": "localhost",
+        "port": 1883,
+        "client_id": "conditional_relay_primary",
+        "username": null,
+        "password": null,
+        "use_tls": false,
+        "ca_file": null,
+        "is_primary": true
+      },
+      {
+        "host": "localhost",
+        "port": 1887,
+        "client_id": "conditional_relay_secondary",
+        "username": null,
+        "password": null,
+        "use_tls": false,
+        "ca_file": null,
+        "is_primary": false
+      }
+    ],
+    "rules": [
+      {
+        "source_topic": "smart/sensors/+",
+        "destination_topic": "filtered/sensors/+",
+        "topic_prefix": "conditional",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "smart/events/+",
+        "destination_topic": "filtered/events/+",
+        "topic_prefix": "conditional",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "smart/high_priority/+",
+        "destination_topic": "filtered/priority/+",
+        "topic_prefix": null,
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": true
+      },
+      {
+        "source_topic": "smart/commands/+",
+        "destination_topic": "filtered/commands/+",
+        "topic_prefix": "conditional",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      }
+    ]
+  }
+}

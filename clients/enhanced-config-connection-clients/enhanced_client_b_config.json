@@ -1,0 +1,41 @@
+{
+  "client_id": "enhanced_client_b_ssl",
+  "broker_host": "localhost", 
+  "broker_port": 1855,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "clean_session": true,
+  "qos": 1,
+  "connect_timeout": 10,
+  "message_timeout": 30,
+  "auto_reconnect": true,
+  "reconnect_delay_min": 1,
+  "reconnect_delay_max": 60,
+  "use_tls": true,
+  "tls_ca_file": "test-certs/ca.crt",
+  "tls_cert_file": "test-certs/generic_runner_9383_1753642425_1753642426.crt",
+  "tls_key_file": "test-certs/generic_runner_9383_1753642425_1753642426.key",
+  "tls_insecure": true,
+  "tls_version": "tlsv1.2",
+  "heartbeat_enabled": true,
+  "heartbeat_interval": 30,
+  "heartbeat_topic": "clients/enhanced_client_b_ssl/heartbeat",
+  "heartbeat_payload": "{\"client\":\"enhanced_client_b_ssl\",\"status\":\"alive\",\"type\":\"heartbeat\",\"ssl\":true}",
+  "publish_topics": [
+    "clients/enhanced_client_b_ssl/messages",
+    "clients/enhanced_client_b_ssl/rpc/request",
+    "clients/enhanced_client_b_ssl/rpc/response",
+    "clients/enhanced_client_b_ssl/heartbeat"
+  ],
+  "subscribe_topics": [
+    "clients/enhanced_client_a_ssl/messages",
+    "clients/enhanced_client_a_ssl/rpc/request", 
+    "clients/enhanced_client_a_ssl/rpc/response",
+    "clients/enhanced_client_a_ssl/heartbeat"
+  ],
+  "relay_enabled": false,
+  "conditional_relay": false,
+  "statistics_enabled": true,
+  "debug_mode": true
+}

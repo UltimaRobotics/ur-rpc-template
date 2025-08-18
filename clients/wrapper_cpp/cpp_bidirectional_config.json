@@ -1,0 +1,25 @@
+{
+  "client_id": "cpp_bidirectional_client",
+  "broker_host": "localhost",
+  "broker_port": 1883,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "qos": 1,
+  "use_tls": false,
+  "ca_file": null,
+  "cert_file": null,
+  "key_file": null,
+  "tls_insecure": false,
+  "tls_version": null,
+  "clean_session": true,
+  "auto_reconnect": true,
+  "max_reconnect_attempts": 10,
+  "reconnect_delay_seconds": 3,
+  "heartbeat": {
+    "enabled": true,
+    "topic": "cpp_rpc/bidirectional/heartbeat",
+    "interval_seconds": 20,
+    "payload": "{\"status\":\"active\",\"type\":\"bidirectional\"}"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "client_id": "cpp_relay_client",
+  "broker_host": "localhost",
+  "broker_port": 1883,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "qos": 1,
+  "use_tls": false,
+  "ca_file": null,
+  "cert_file": null,
+  "key_file": null,
+  "tls_insecure": false,
+  "tls_version": null,
+  "clean_session": true,
+  "auto_reconnect": true,
+  "max_reconnect_attempts": 10,
+  "reconnect_delay_seconds": 5,
+  "relay": {
+    "enabled": true,
+    "conditional_relay": true,
+    "relay_prefix": "forwarded",
+    "brokers": [
+      {
+        "host": "localhost",
+        "port": 1883,
+        "client_id": "cpp_relay_primary",
+        "is_primary": true,
+        "use_tls": false
+      },
+      {
+        "host": "localhost", 
+        "port": 1885,
+        "client_id": "cpp_relay_dest1",
+        "is_primary": false,
+        "use_tls": false
+      },
+      {
+        "host": "localhost",
+        "port": 1887,
+        "client_id": "cpp_relay_dest2", 
+        "is_primary": false,
+        "use_tls": false
+      }
+    ],
+    "rules": [
+      {
+        "source_topic": "data/sensors/+",
+        "destination_topic": "forwarded/sensors/+",
+        "topic_prefix": "forwarded",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "events/system/+",
+        "destination_topic": "forwarded/system/+", 
+        "topic_prefix": "forwarded",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "commands/+",
+        "destination_topic": "relayed/commands/+",
+        "topic_prefix": "relayed",
+        "source_broker_index": 0,
+        "dest_broker_index": 2,
+        "bidirectional": false
+      }
+    ]
+  },
+  "heartbeat": {
+    "enabled": true,
+    "topic": "cpp_relay/monitor/heartbeat",
+    "interval_seconds": 25,
+    "payload": "{\"status\":\"relay_active\",\"type\":\"relay_monitor\"}"
+  }
+}

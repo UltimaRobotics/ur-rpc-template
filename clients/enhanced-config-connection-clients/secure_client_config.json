@@ -1,0 +1,39 @@
+{
+  "client_id": "secure_ssl_client",
+  "broker_host": "localhost",
+  "broker_port": 1855,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "clean_session": true,
+  "qos": 1,
+  "connect_timeout": 10,
+  "message_timeout": 30,
+  "auto_reconnect": true,
+  "reconnect_delay_min": 1,
+  "reconnect_delay_max": 60,
+  "use_tls": true,
+  "ca_file": "ssl_certs/ca.crt",
+  "cert_file": "ssl_certs/generic_ssl_tls_cert_client_9383_1753630905_1753630905.crt",
+  "key_file": "ssl_certs/generic_ssl_tls_cert_client_9383_1753630905_1753630905.key",
+  "tls_insecure": false,
+  "tls_version": "tlsv1.2",
+  "heartbeat_enabled": true,
+  "heartbeat_interval": 30,
+  "heartbeat_topic": "secure/heartbeat",
+  "heartbeat_payload": "{\"client\":\"secure_ssl_client\",\"status\":\"alive\"}",
+  "publish_topics": [
+    "secure/ping",
+    "secure/rpc/notifications"
+  ],
+  "subscribe_topics": [
+    "secure/pong",
+    "secure/status",
+    "secure/rpc/requests",
+    "secure/rpc/responses"
+  ],
+  "relay_enabled": false,
+  "conditional_relay": false,
+  "statistics_enabled": true,
+  "debug_mode": true
+}

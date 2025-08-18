@@ -1,0 +1,17 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find required dependencies
+find_dependency(PkgConfig REQUIRED)
+find_dependency(Threads REQUIRED)
+find_dependency(OpenSSL REQUIRED)
+
+# Find mosquitto using PkgConfig
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MOSQUITTO REQUIRED libmosquitto)
+
+# Include the targets
+include("${CMAKE_CURRENT_LIST_DIR}/UrRpcCppWrapperTargets.cmake")
+
+check_required_components(UrRpcCppWrapper)

@@ -1,0 +1,82 @@
+{
+  "client_id": "ssl_relay_client",
+  "broker_host": "localhost",
+  "broker_port": 1884,
+  "username": null,
+  "password": null,
+  "keepalive": 60,
+  "qos": 1,
+  "use_tls": true,
+  "ca_file": "ssl_certs/ca.crt",
+  "cert_file": "ssl_certs/client.crt",
+  "key_file": "ssl_certs/client.key",
+  "tls_insecure": false,
+  "tls_version": "tlsv1.2",
+  "clean_session": true,
+  "auto_reconnect": true,
+  "max_reconnect_attempts": 10,
+  "reconnect_delay_seconds": 5,
+  "heartbeat": {
+    "enabled": true,
+    "topic": "ssl_relay/secure/heartbeat",
+    "interval_seconds": 30,
+    "payload": "{\"status\":\"alive\",\"relay_type\":\"ssl\",\"encryption\":\"enabled\"}"
+  },
+  "relay": {
+    "enabled": true,
+    "conditional_relay": false,
+    "relay_prefix": "ssl_relayed",
+    "brokers": [
+      {
+        "host": "localhost",
+        "port": 1884,
+        "client_id": "ssl_relay_source",
+        "username": null,
+        "password": null,
+        "use_tls": true,
+        "ca_file": "ssl_certs/ca.crt",
+        "cert_file": "ssl_certs/client.crt",
+        "key_file": "ssl_certs/client.key",
+        "is_primary": true
+      },
+      {
+        "host": "localhost",
+        "port": 1886,
+        "client_id": "ssl_relay_dest",
+        "username": null,
+        "password": null,
+        "use_tls": true,
+        "ca_file": "ssl_certs/ca.crt",
+        "cert_file": "ssl_certs/client.crt", 
+        "key_file": "ssl_certs/client.key",
+        "is_primary": false
+      }
+    ],
+    "rules": [
+      {
+        "source_topic": "secure/sensors/+",
+        "destination_topic": "encrypted/sensors/+",
+        "topic_prefix": "ssl_relayed",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "secure/events/+",
+        "destination_topic": "encrypted/events/+",
+        "topic_prefix": "ssl_relayed",
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": false
+      },
+      {
+        "source_topic": "secure/commands/+",
+        "destination_topic": "encrypted/commands/+",
+        "topic_prefix": null,
+        "source_broker_index": 0,
+        "dest_broker_index": 1,
+        "bidirectional": true
+      }
+    ]
+  }
+}

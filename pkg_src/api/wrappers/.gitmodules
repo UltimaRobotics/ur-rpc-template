@@ -1,0 +1,6 @@
+[submodule "deps/mqtt-client"]
+	path = deps/mqtt-client
+	url = https://github.com/UltimaRobotics/ur-mqtt-basic.git
+[submodule "deps/ur-logger-api"]
+	path = deps/ur-logger-api
+	url = https://github.com/UltimaRobotics/ur-logger-api.git

@@ -1,0 +1,20 @@
+{
+  "client_id": "queued_client_2",
+  "broker_host": "localhost",
+  "broker_port": 1883,
+  "use_tls": false,
+  "clean_session": true,
+  "keepalive": 60,
+  "qos": 1,
+  "username": null,
+  "password": null,
+  "connect_timeout": 30,
+  "message_timeout": 15,
+  "auto_reconnect": true,
+  "reconnect_delay_min": 1,
+  "reconnect_delay_max": 10,
+  "base_topic": "queued_messaging/client_2",
+  "request_suffix": "requests",
+  "response_suffix": "responses",
+  "notification_suffix": "notifications"
+}
